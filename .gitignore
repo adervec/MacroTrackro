@@ -23,6 +23,9 @@
 # misc
 .DS_Store
 *.pem
+.turbo
+Thumbs.db
+desktop.ini
 
 # local JSON data store (created at runtime)
 /data
