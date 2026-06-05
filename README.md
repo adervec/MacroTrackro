@@ -91,3 +91,34 @@ src/
     display.ts         # formatting + per-macro colors
     api.ts             # typed client for the API routes
 ```
+
+## Disclaimer
+
+MacroTrackro is a personal convenience tool for logging food and estimating
+macronutrient intake. It is not a medical device, and nothing in this app
+constitutes medical advice, dietary advice, or the recommendation of a
+registered dietitian or healthcare professional.
+
+I'm a software developer, not a doctor, dietitian, or coach. Nutritional data
+is entered manually by the user and may be inaccurate. Calorie estimates
+derived from macros use the standard 4/4/9 kcal/g approximation, which may
+differ from food-label values.
+
+Use this tool at your own risk. If you have specific health, dietary, or medical
+needs, consult a qualified healthcare professional before making changes to
+your diet.
+
+## Privacy
+
+MacroTrackro stores all data — your food database, daily log entries, and calorie
+goals — in a single JSON file on the machine where the app is running
+(`data/macrotrackro.json`). No data is sent to any external server, no analytics
+or tracking scripts are loaded, and the app has no user accounts.
+
+If you run this locally, your data never leaves your computer. If you deploy it
+to a server, your data stays on that server and is accessible to anyone who can
+reach the URL — restrict access at the infrastructure level accordingly.
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
