@@ -21,10 +21,10 @@ export default function Home() {
   const [addMeal, setAddMeal] = useState<Meal>("breakfast");
   const [goalsOpen, setGoalsOpen] = useState(false);
 
-  // Resolve "today" on the client to respect the user's local timezone.
-  useEffect(() => {
-    setDate(todayISO());
-  }, []);
+  // Must run in an effect: lazy useState initializer still executes on the
+  // server, which would use the server's timezone instead of the user's.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setDate(todayISO()); }, []);
 
   const loadDay = useCallback(async (d: string) => {
     setLoading(true);
@@ -38,9 +38,8 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    if (date) loadDay(date);
-  }, [date, loadDay]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { if (date) loadDay(date); }, [date, loadDay]);
 
   function openAdd(meal: Meal) {
     setAddMeal(meal);

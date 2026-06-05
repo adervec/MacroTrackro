@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import Modal from "@/components/Modal";
 import { api } from "@/lib/api";
-import { fmt, MACRO_META, portionLabel } from "@/lib/display";
+import { fmt, MACRO_META } from "@/lib/display";
 import { scaleMacros } from "@/lib/macros";
 import { type DayView, type Food, type Meal, MEALS } from "@/lib/types";
 
@@ -48,6 +48,7 @@ export default function AddFoodModal({
   // Reset everything each time the modal is opened.
   useEffect(() => {
     if (!open) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTab("search");
     setQuery("");
     setSelected(null);
@@ -60,6 +61,7 @@ export default function AddFoodModal({
   useEffect(() => {
     if (!open || tab !== "search" || selected) return;
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearching(true);
     const t = setTimeout(async () => {
       try {

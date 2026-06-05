@@ -25,6 +25,7 @@ export default function GoalsModal({ open, goals, onClose, onSaved }: GoalsModal
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm(goals);
       setError(null);
     }
