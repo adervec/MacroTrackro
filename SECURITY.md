@@ -7,7 +7,7 @@ privately rather than opening a public issue.
 Please include enough detail to reproduce the issue. I'll aim to respond within
 a few days and coordinate a fix before any public disclosure.
 
-Note: this app stores all data locally in a JSON file. It has no user accounts,
-no authentication, and no external data transmission. If you deploy it on a
-public server, restrict access at the infrastructure level (reverse-proxy auth,
-firewall, etc.) — the app itself has no access controls.
+Note: this is a static site with no server and no accounts. All data stays in the reader's
+browser, with an optional copy in their own private Google Drive app folder. It shares the
+`adervec.github.io` origin with the maker's other apps, so anything that lets outside text run
+as script (an import, a Drive file, an AI cowork reply) is the kind of report that matters most.

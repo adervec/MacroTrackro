@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- house standard 22: scripts only from here, the maker's site and Google sign-in (for Drive sync). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://adervec.github.io https://accounts.google.com; style-src 'self' 'unsafe-inline' https://adervec.github.io https://accounts.google.com; font-src https://adervec.github.io; img-src 'self' data: https://*.googleusercontent.com; connect-src 'self' https://adervec.github.io https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com; frame-src https://accounts.google.com; manifest-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" href="%BASE_URL%icon.svg" type="image/svg+xml" />
+    <title>MacroTrackro</title>
+    <meta name="description" content="Track calories and macros, and check your vitamin, supplement and pre-workout stack." />
+    <meta name="app-name" content="MacroTrackro" />
+    <meta name="app-version" content="0.2.0" />
+    <meta name="app-license" content="MIT" />
+    <meta name="app-locales" content="%BASE_URL%locales/" />
+    <meta name="app-whatsnew" content="%BASE_URL%whatsnew.json" />
+    <meta name="app-data-note" content="Your food log and supplement stack stay on this device, in this browser. Nothing is uploaded: there is no server. If you sign in, a copy is kept in your own private Google Drive app folder, which only this site can read." />
+    <!-- house font, themes, About panel, languages, sign-in, crash and update notices -->
+    <script src="https://adervec.github.io/font.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

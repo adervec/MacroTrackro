@@ -1,1 +1,0 @@
-application for tracking groceries, macros, etc.

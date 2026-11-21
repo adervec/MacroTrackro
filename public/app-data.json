@@ -1,0 +1,8 @@
+{
+  "schema": 2,
+  "localStorage": ["macrotrackro-*"],
+  "indexedDB": [],
+  "drive": ["macrotrackro.json"],
+  "caches": [],
+  "export": "Settings > Your data > Export"
+}

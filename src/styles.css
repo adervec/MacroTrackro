@@ -1,0 +1,94 @@
+/* Colours come from the house theme in force (font.js sets --t-* on <html>); the fallbacks are
+   only for a first load without it. Logical properties throughout, so right-to-left works. */
+:root {
+  --bg: var(--t-bg, #f8fafc);
+  --surface: var(--t-surface, #fff);
+  --surface2: var(--t-surface2, #f1f5f9);
+  --line: var(--t-line, #e2e8f0);
+  --text: var(--t-text, #0f172a);
+  --dim: var(--t-dim, #64748b);
+  --accent: var(--t-accent, #0f766e);
+  --on-accent: var(--t-on-accent, #fff);
+  --good: var(--t-good, #15803d);
+  --warn: var(--t-warn, #b45309);
+  --bad: var(--t-bad, #b91c1c);
+  color-scheme: var(--t-scheme, light);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--app-font, system-ui, sans-serif); line-height: 1.45; }
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: 1.15rem; }
+h2 { font-size: 1.05rem; }
+h3 { font-size: 0.95rem; }
+a { color: var(--accent); }
+
+.top { position: sticky; inset-block-start: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--surface); border-block-end: 1px solid var(--line); }
+.top nav { display: flex; gap: 4px; flex: 1; }
+.top nav button { border: 0; background: none; }
+.top nav button[aria-current] { background: var(--accent); color: var(--on-accent); }
+main { max-width: 760px; margin-inline: auto; padding: 16px; display: grid; gap: 14px; }
+
+button, .button, input, select { font: inherit; color: inherit; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 7px 12px; min-height: 38px; }
+button, .button { cursor: pointer; font-weight: 600; white-space: nowrap; }
+button:disabled { opacity: 0.5; cursor: default; }
+.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.danger { color: var(--bad); border-color: var(--bad); }
+.ghost { border-color: transparent; background: none; }
+.start { justify-self: start; }
+input, select { width: 100%; min-width: 0; background: var(--bg); }
+input[type="checkbox"] { width: 20px; min-height: 20px; height: 20px; flex: none; accent-color: var(--accent); padding: 0; }
+label { display: grid; gap: 4px; font-size: 0.9rem; color: var(--dim); }
+label.row { display: flex; color: var(--text); font-size: 1rem; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
+.row { display: flex; align-items: center; gap: 8px; }
+.row.wrap, p.row { flex-wrap: wrap; }
+.between { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+.stack { display: grid; gap: 10px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.dim { color: var(--dim); font-size: 0.9rem; }
+.block { display: block; }
+.item { padding-block: 8px; border-block-start: 1px solid var(--line); }
+.item input[type="number"] { width: 76px; }
+.item.off { opacity: 0.55; }
+.list { display: grid; max-height: 40vh; overflow-y: auto; }
+.list button { font-weight: 400; text-align: start; white-space: normal; }
+
+.datenav .date { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 1rem; }
+.datenav input { width: auto; }
+.macros { grid-template-columns: repeat(4, 1fr); }
+.macro { display: grid; gap: 2px; min-width: 0; }
+.macro strong { font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+progress { width: 100%; height: 8px; accent-color: var(--accent); }
+.m-protein progress { accent-color: var(--bad); }
+.m-carbs progress { accent-color: var(--warn); }
+.m-fat progress { accent-color: var(--good); }
+
+summary { cursor: pointer; }
+details > :not(summary) { margin-block-start: 8px; }
+.badge { display: inline-block; font-size: 0.78rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--surface2); color: var(--dim); white-space: nowrap; }
+.badge.bad { background: var(--bad); color: var(--on-accent); }
+.ev-strong { color: var(--good); }
+.ev-moderate { color: var(--accent); }
+.ev-none { color: var(--bad); }
+.finding { border-inline-start: 4px solid var(--dim); background: var(--surface2); border-radius: 6px; padding: 8px 10px; margin-block: 6px; }
+.finding p { color: var(--dim); font-size: 0.92rem; margin-block-start: 2px; }
+.finding.bad { border-color: var(--bad); }
+.finding.warn { border-color: var(--warn); }
+.finding.good { border-color: var(--good); }
+.dose { display: grid; grid-template-columns: 1fr 84px 84px auto; gap: 6px; }
+
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--text); padding: 0; width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); }
+dialog::backdrop { background: color-mix(in srgb, var(--text) 45%, transparent); }
+.dialog-body { padding: 16px; display: grid; gap: 12px; }
+
+@media (max-width: 520px) {
+  .macros, .grid4 { grid-template-columns: 1fr 1fr; }
+  .item { flex-wrap: wrap; }
+  .dose { grid-template-columns: 1fr 1fr auto; }
+  .dose input:first-child { grid-column: 1 / -1; }
+}
+summary > .row { display: inline-flex; width: calc(100% - 1.5em); vertical-align: top; }
+summary .row .row { flex-wrap: wrap; justify-content: flex-end; }

@@ -1,0 +1,60 @@
+name: CI
+
+# Every push runs the checks. A push to main also publishes the built site to GitHub Pages,
+# but only after the checks pass, and only once the repo is public: going public is the
+# maker's decision, and until then the deploy jobs are skipped rather than failing.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # what reaches a reader's browser; the build chain never ships
+      - run: npm audit --audit-level=high --omit=dev
+      - run: npm test
+      - run: npm run build
+        env:
+          GHPAGES_BASE: /${{ github.event.repository.name }}/
+      - if: github.ref == 'refs/heads/main' && github.event_name == 'push' && !github.event.repository.private
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && !github.event.repository.private
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # checks the live site and tags the release deploy-YYYYMMDD-HHMM (house standard 7)
+  after-deploy:
+    needs: deploy
+    uses: adervec/CoworkSyncHub/.github/workflows/after-deploy.yml@main
+    with:
+      url: https://adervec.github.io/MacroTrackro/
+    permissions:
+      contents: write

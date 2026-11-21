@@ -1,5 +1,3 @@
-@AGENTS.md
-
 # MacroTrackro
 
 Notes for the coding agent that works on this repo.
@@ -14,33 +12,39 @@ For this app:
 - Check nothing personal is tracked before every push: `node ../CoworkSyncHub/leak-check.mjs .`
 - Work on `main`; push your own work when it passes. Add user-visible changes to `whatsnew.json`.
 
-## Where this app stands (unshelved 2026-11-20)
+## Where this app stands (static since 2026-11-21)
 
-The maker shelved nutrition tracking for a while and has now picked it up again: this app is to be
-built out and brought onto the hub at `adervec.github.io` beside GymTracker, Run315, Mise and the
-rest. Talk the shape through with the maker before large changes.
+Unshelved 2026-11-20 and rebuilt the next day as a static Vite + React + TypeScript site (the
+maker chose Vite over a Next static export). The data is one JSON document in localStorage
+(`src/lib/store.ts`), mirrored to Drive through `appFont.google` (`src/lib/sync.ts`).
 
-What exists is a small full-stack Next.js app: the page talks to JSON API routes
-(`src/app/api/**`), which read and write one JSON file on the server's disk (`src/lib/store.ts`,
-`data/macrotrackro.json`, git-ignored). That shape does not fit the house:
+It does two jobs: the food and macro log, and the **supplement stack** (vitamins, supplements,
+pre-workouts) with a built-in ingredient guide and a stack check.
 
-- **Every hub app is a static site** on GitHub Pages under `adervec.github.io/<slug>/`, with no
-  server. The reader's data lives in their browser (localStorage / IndexedDB) and, if they sign
-  in, in their private Google Drive folder. So the first real job is to move the store into the
-  browser behind the same functions `store.ts` already isolates, drop the API routes, and build a
-  static export. Agree the approach with the maker first (keep Next with `output: 'export'`, or
-  go lighter).
-- **The repo is private.** Going public, and the licence that goes with it, is the maker's call.
-- **The hub registry** (`../CoworkSyncHub/apps.json`) does not list this app yet. Ask the maker
-  to add it once there is something to deploy; do not edit the hub from here.
+- **The ingredient guide** (`src/data/kb.ts`) is the maker's ask: a solid knowledge base of what
+  is sold in North America, with US/Canada reference values, and no fixed size limit. Add to it
+  freely; keep every number sourced as the header says, and keep `test/logic.test.ts` green (it
+  checks ids, aliases and ranges). It is catalogue content: English only, not run through `t()`.
+- **Recalls** come only through the `stack-review` cowork channel (`src/lib/cowork.ts`): the
+  maker chose that over a live fetch, which would break "no third-party requests". Do not add a
+  fetch to FDA or Health Canada from the page.
+- **Health wording**: the app says what an ingredient is for and how good the evidence is, and
+  flags numbers. It never tells a reader to start or stop anything; keep the "not medical
+  advice" line on the Stack and Guide screens.
+- The stack check sees supplements only. The food log carries macros, not micronutrients, so a
+  "gap" means "not in the stack". Marked `ponytail:` in `analyze.ts`.
+- Sync is whole-document, newest wins, with a safety copy (`ponytail:` in `sync.ts`).
 
-Pieces that already exist next door (use them, do not rebuild them):
+Still open, and the maker's call:
 
-- `font.js` (loaded from `adervec.github.io/font.js`) gives the house font, the theme list, the
-  About panel, languages, backup, Google sign-in and Drive (`appFont.google`), and the session
-  ledger (`appFont.logSession`). Log one row per day that is logged, not one per food.
-- `../Mise` is the cooking app: recipes and a cook log. Food data and meals should be shareable
-  with it later rather than typed twice; do not merge the apps.
-- `../GymTracker` and `../BodybuildingProgressCoach` hold training and body composition, which is
-  what macro targets are usually set against.
-- `../GymTracker` is also the reference for Drive sync, cowork channels and AI review.
+- **The repo is private.** Going public is the maker's decision. The deploy jobs in
+  `.github/workflows/ci.yml` skip themselves while it is private, so nothing is live yet and
+  the `after-deploy` live check has never run.
+- **The hub registry** (`../CoworkSyncHub/apps.json`) does not list this app. Ask the maker to
+  add it once the site is live; do not edit the hub from here.
+- Sharing with `../Mise`, `../GymTracker` and the rest is written down in `OVERLAPS.md`, not built.
+
+Checks before a push: `npm test`, `npm run build`, the standards check and the leak check above.
+After changing a screen: `npm run preview`, then
+`node ../CoworkSyncHub/layout-check.mjs --url http://localhost:4173/`.
+After changing English text: the i18n loop in house standard 20 (`public/locales/`).

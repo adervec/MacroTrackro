@@ -48,3 +48,9 @@ next-env.d.ts
 
 # local launcher for resuming the Claude Code session in this folder
 RESUME CLAUDE*.ps1
+
+# vite
+/dist
+
+# translation work in progress
+/public/locales/_todo
