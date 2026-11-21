@@ -35,13 +35,9 @@ pre-workouts) with a built-in ingredient guide and a stack check.
   "gap" means "not in the stack". Marked `ponytail:` in `analyze.ts`.
 - Sync is whole-document, newest wins, with a safety copy (`ponytail:` in `sync.ts`).
 
-Still open, and the maker's call:
+Public and on the hub since 2026-11-21 (the maker's decision): every push to `main` that passes
+the checks is published to `adervec.github.io/MacroTrackro/`, then checked live and tagged.
 
-- **The repo is private.** Going public is the maker's decision. The deploy jobs in
-  `.github/workflows/ci.yml` skip themselves while it is private, so nothing is live yet and
-  the `after-deploy` live check has never run.
-- **The hub registry** (`../CoworkSyncHub/apps.json`) does not list this app. Ask the maker to
-  add it once the site is live; do not edit the hub from here.
 - Sharing with `../Mise`, `../GymTracker` and the rest is written down in `OVERLAPS.md`, not built.
 
 Checks before a push: `npm test`, `npm run build`, the standards check and the leak check above.
