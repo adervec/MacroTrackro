@@ -72,7 +72,7 @@ export interface AiIngredient {
   caution?: string;
 }
 
-export const SCHEMA = 2;
+export const SCHEMA = 3;
 
 /** Everything the app stores: one document in localStorage, mirrored to Drive when signed in. */
 export interface DB {
@@ -88,4 +88,8 @@ export interface DB {
   taken: Record<string, string[]>;
   alerts: Alert[];
   aiIngredients: Record<string, AiIngredient>;
+  /** record key ("foods:<id>", "taken:<day>", "set:goals"…) -> when it last changed (ms); set by the store */
+  stamps: Record<string, number>;
+  /** record key -> when it was deleted (a tombstone, so a stale device cannot bring it back) */
+  gone: Record<string, number>;
 }

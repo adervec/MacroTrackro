@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-11-22",
+    "items": [
+      "Sync is safer: when your phone and computer both changed things, the changes are now merged item by item instead of one copy replacing the other. Deleted items stay deleted.",
+      "Sync now also runs when you come back to the app and when your connection returns."
+    ]
+  },
+  {
     "date": "2026-11-21",
     "items": [
       "MacroTrackro now runs entirely in your browser: your food log stays on your device, with optional sync to your own private Google Drive folder.",

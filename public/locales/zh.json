@@ -117,7 +117,7 @@
  "The previous copy is back.": "上一份副本已恢复。",
  "Their effects on heart rate, blood pressure and sleep add up.": "它们对心率、血压和睡眠的影响会叠加。",
  "There is no previous copy on this device.": "此设备上没有上一份副本。",
- "This device and Drive had both changed. Drive's copy was loaded; this device's copy can be put back with 'Restore the previous copy' below.": "此设备和 Drive 上的数据都有改动。已加载 Drive 的副本；此设备的副本可通过下方的“恢复上一份副本”找回。",
+ "This device and your Google Drive had both changed; the changes were merged.": "此设备和你的 Google Drive 都有更改；更改已合并。",
  "Today": "今天",
  "Unit": "单位",
  "Upper limit {x}": "上限 {x}",

@@ -33,7 +33,8 @@ pre-workouts) with a built-in ingredient guide and a stack check.
   advice" line on the Stack and Guide screens.
 - The stack check sees supplements only. The food log carries macros, not micronutrients, so a
   "gap" means "not in the stack". Marked `ponytail:` in `analyze.ts`.
-- Sync is whole-document, newest wins, with a safety copy (`ponytail:` in `sync.ts`).
+- Sync goes through `appFont.cloud.syncDoc`: merged record by record (`mergeDB` in `store.ts`, stamps and
+  tombstones per record, set by `update()`). Sync writes use `adoptDB`, reader-chosen swaps `replaceDB`.
 
 Public and on the hub since 2026-11-21 (the maker's decision): every push to `main` that passes
 the checks is published to `adervec.github.io/MacroTrackro/`, then checked live and tagged.

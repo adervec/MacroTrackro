@@ -58,7 +58,74 @@ export function normalize(raw: unknown): DB {
     taken,
     alerts: list(raw.alerts, 200).map(cleanAlert).filter((a): a is Alert => a !== null),
     aiIngredients,
+    stamps: stampMap(raw.stamps),
+    gone: stampMap(raw.gone),
   };
+}
+
+// schema 2 had no stamps: its records count as old (time 0), so nothing is lost in the first merge
+const stampMap = (v: unknown): Record<string, number> => {
+  const out: Record<string, number> = {};
+  if (isObj(v)) for (const [k, t] of Object.entries(v).slice(0, 200000)) if (typeof t === "number" && Number.isFinite(t) && t > 0) out[str(k, 200)] = t;
+  return out;
+};
+
+// ---- records: every part of the document that two devices may change independently ----
+const LISTS = ["foods", "log", "supplements", "alerts"] as const;
+
+function records(d: DB): Map<string, unknown> {
+  const m = new Map<string, unknown>();
+  for (const c of LISTS) for (const r of d[c]) m.set(`${c}:${r.id}`, r);
+  for (const [k, v] of Object.entries(d.taken)) m.set(`taken:${k}`, v);
+  for (const [k, v] of Object.entries(d.aiIngredients)) m.set(`ai:${k}`, v);
+  m.set("set:goals", d.goals);
+  m.set("set:sex", d.sex);
+  return m;
+}
+
+function fromRecords(m: Map<string, unknown>, d: DB): DB {
+  const out: DB = { ...d, foods: [], log: [], supplements: [], alerts: [], taken: {}, aiIngredients: {} };
+  for (const [key, v] of m) {
+    const i = key.indexOf(":"), c = key.slice(0, i), id = key.slice(i + 1);
+    if (c === "taken") out.taken[id] = v as string[];
+    else if (c === "ai") out.aiIngredients[id] = v as AiIngredient;
+    else if (key === "set:goals") out.goals = v as Macros;
+    else if (key === "set:sex") out.sex = v as DB["sex"];
+    else (out[c as (typeof LISTS)[number]] as unknown[]).push(v);
+  }
+  return out;
+}
+
+/** Stamp every record that differs between `before` and `after` (a deletion becomes a tombstone). */
+function stamp(before: DB, after: DB, now: number): void {
+  const a = records(before), b = records(after);
+  // ponytail: stringifies every record on each edit; fine for years of logging, keep a dirty set if it ever lags
+  for (const [k, v] of b) if (!a.has(k) || JSON.stringify(a.get(k)) !== JSON.stringify(v)) { after.stamps[k] = now; delete after.gone[k]; }
+  for (const k of a.keys()) if (!b.has(k)) { after.gone[k] = now; delete after.stamps[k]; }
+}
+
+const TOMBSTONE_DAYS = 90;
+
+/**
+ * This device's copy and the cloud's, combined record by record: for each record the latest change
+ * wins, a deletion included. Equal times (old unstamped records) go to the cloud, so every device
+ * settles on the same copy. Pure; the cloud side is checked with normalize() first.
+ */
+export function mergeDB(local: DB, remote: DB, now = Date.now()): DB {
+  const L = records(local), R = records(remote);
+  const time = (d: DB, k: string) => d.stamps[k] ?? d.gone[k] ?? 0;
+  const merged = new Map<string, unknown>();
+  const stamps: Record<string, number> = {}, gone: Record<string, number> = {};
+  const keys = new Set([...R.keys(), ...L.keys(), ...Object.keys(remote.gone), ...Object.keys(local.gone)]);
+  for (const k of keys) {
+    const tl = time(local, k), tr = time(remote, k), t = Math.max(tl, tr);
+    const [win, winDoc, other] = tl > tr ? [L, local, R] : [R, remote, L];
+    if (win.has(k)) merged.set(k, win.get(k));
+    else if (k in winDoc.gone) { if (now - t < TOMBSTONE_DAYS * 864e5) gone[k] = t; continue; }
+    else merged.set(k, other.get(k)); // the winner never had it (an old unstamped record on the other side)
+    if (t > 0) stamps[k] = t;
+  }
+  return { ...fromRecords(merged, remote), schema: SCHEMA, updatedAt: Math.max(local.updatedAt, remote.updatedAt), stamps, gone };
 }
 
 export function cleanAlert(v: unknown): Alert | null {
@@ -105,14 +172,22 @@ export function update(fn: (draft: DB) => void): void {
   const draft = structuredClone(getDB());
   fn(draft);
   draft.updatedAt = Date.now();
+  stamp(getDB(), draft, draft.updatedAt);
   commit(draft);
 }
 
-/** Swap in a whole document (an import, or a newer copy from Drive), keeping the old one as a safety copy. */
+/** Swap in a whole document the reader chose (an import, the previous copy), keeping the old one as a safety copy. */
 export function replaceDB(next: DB): void {
-  localStorage.setItem("macrotrackro-db-prev", JSON.stringify(getDB()));
-  commit(next);
+  const cur = getDB(), now = Date.now();
+  // records missing from `next` become tombstones, so the import also wins over the cloud
+  const draft: DB = { ...next, updatedAt: now, stamps: { ...cur.stamps, ...next.stamps }, gone: { ...cur.gone, ...next.gone } };
+  stamp(cur, draft, now);
+  localStorage.setItem("macrotrackro-db-prev", JSON.stringify(cur));
+  commit(draft);
 }
+
+/** Take the merged copy from a sync as it is (no new stamps: nothing was edited). */
+export function adoptDB(next: DB): void { commit(next); }
 
 /** The document as it was before the last import or Drive pull, if there is one. */
 export function previousDB(): DB | null {
@@ -122,7 +197,8 @@ export function previousDB(): DB | null {
 
 /** Erase everything of THIS app's. Other apps share the origin, so the whole store is never cleared. */
 export function eraseAll(): void {
-  for (const k of Object.keys(localStorage)) if (k.startsWith("macrotrackro-")) localStorage.removeItem(k);
+  // also font.js's sync marker for our file, so the next sync reads the cloud instead of pushing an empty copy over it
+  for (const k of Object.keys(localStorage)) if (k.startsWith("macrotrackro-") || /^maker-sync:[^:]*:macrotrackro\.json$/.test(k)) localStorage.removeItem(k);
   db = null;
   listeners.forEach((fn) => fn());
 }

@@ -14,7 +14,7 @@ const GOAL_LABEL: Record<MacroKey, string> = { calories: "Calories (kcal)", prot
 
 export default function Settings({ db }: { db: DB }) {
   const [note, setNote] = useState("");
-  const [signedIn, setSignedIn] = useState(() => !!window.appFont?.google.signedIn());
+  const [signedIn, setSignedIn] = useState(() => !!window.appFont?.cloud.signedIn());
   const cowork = useRef<HTMLDivElement>(null);
   useEffect(() => { if (cowork.current) mountCowork(cowork.current); }, []);
 
@@ -27,7 +27,7 @@ export default function Settings({ db }: { db: DB }) {
         pushed: t("Saved to your Google Drive."),
         pulled: t("Loaded the newer copy from your Google Drive."),
         same: t("Already up to date."),
-        conflict: t("This device and Drive had both changed. Drive's copy was loaded; this device's copy can be put back with 'Restore the previous copy' below."),
+        both: t("This device and your Google Drive had both changed; the changes were merged."),
       };
       setNote(said[r]);
     } catch (e) {
@@ -100,7 +100,7 @@ export default function Settings({ db }: { db: DB }) {
         <p className="dim">{t("Keeps a copy in your own private Google Drive app folder, so a second device or a new browser has your data. Only this site can read that folder.")}</p>
         <div className="row">
           <button type="button" className="primary" onClick={runSync}>{signedIn ? t("Sync now") : t("Sign in and sync")}</button>
-          {signedIn && <button type="button" onClick={() => { window.appFont?.google.signOut(); setSignedIn(false); setNote(t("Signed out. Your data stays on this device.")); }}>{t("Sign out")}</button>}
+          {signedIn && <button type="button" onClick={() => { window.appFont?.cloud.signOut(); setSignedIn(false); setNote(t("Signed out. Your data stays on this device.")); }}>{t("Sign out")}</button>}
         </div>
       </section>
 

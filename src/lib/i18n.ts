@@ -20,7 +20,7 @@ export const num = (n: number, max = 1): string =>
 /** "Saturday, 21 November" in the shared locale. */
 export const longDate = (d: Date): string => {
   const o: Intl.DateTimeFormatOptions = { weekday: "long", month: "long", day: "numeric" };
-  return g.appFont?.fmt ? g.appFont.fmt.custom(d, o) : d.toLocaleDateString(undefined, o);
+  return g.appFont?.fmt ? g.appFont.fmt.custom(d, o) : d.toLocaleDateString(undefined, o); // iso-ok: weekday + month name, only when font.js did not load
 };
 
 /** Resolves once the chosen language's dictionary is loaded (at once without font.js). */

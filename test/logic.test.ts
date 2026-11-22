@@ -90,7 +90,7 @@ test("normalize upgrades the old server file and drops what it does not know", (
     supplements: [{ id: "s1", name: "Made-up multi", ingredients: [{ name: "Zinc", amount: "lots", unit: "kg" }], evil: "<script>" }],
     alerts: [{ id: "a1", title: "x", source: "javascript:alert(1)" }],
   });
-  expect(db.schema).toBe(2);
+  expect(db.schema).toBe(3);
   expect(db.foods).toHaveLength(1);
   expect(db.log).toHaveLength(1);
   expect(db.supplements[0]).toMatchObject({ stack: "Daily", servingsPerDay: 1, active: true, ingredients: [{ name: "Zinc", amount: null, unit: "mg" }] });
@@ -109,4 +109,33 @@ test("update saves, replace keeps a safety copy, erase removes only this app's k
   expect(store.previousDB()?.goals.calories).toBe(1234);
   store.eraseAll();
   expect(Object.keys(bag)).toEqual(["other-app"]);
+});
+
+test("two devices sync without overwriting each other (standard 30)", () => {
+  const { normalize, mergeDB } = store;
+  const t0 = 1_800_000_000_000;
+  const food = (id: string, name: string) => ({ id, name, servingSize: 1, servingUnit: "g", perServing: { calories: 1, protein: 0, carbs: 0, fat: 0 } });
+  // the old schema-2 copy both devices start from: no stamps
+  const start = normalize({ foods: [food("a", "Oats"), food("b", "Rice")], log: [], goals: { calories: 2000, protein: 150, carbs: 200, fat: 60 } });
+  const A = structuredClone(start), B = structuredClone(start);
+  // device A renames Oats and deletes Rice, then syncs to an empty cloud
+  A.foods = [food("a", "Rolled oats")]; A.stamps["foods:a"] = t0 + 10; A.gone["foods:b"] = t0 + 10;
+  const cloud = mergeDB(A, normalize({ foods: [] }), t0 + 20);
+  // stale device B (offline since the start) adds a food and changes the calorie goal, then syncs
+  B.foods.push(food("c", "Beans")); B.stamps["foods:c"] = t0 + 5;
+  B.goals = { ...B.goals, calories: 2400 }; B.stamps["set:goals"] = t0 + 5;
+  const after = mergeDB(B, normalize(JSON.parse(JSON.stringify(cloud))), t0 + 30);
+  expect(after.foods.map((f) => f.name).sort()).toEqual(["Beans", "Rolled oats"]); // Rice stays deleted
+  expect(after.goals.calories).toBe(2400);
+  // and A merging the result back changes nothing further
+  expect(mergeDB(A, after, t0 + 40).foods.map((f) => f.name).sort()).toEqual(["Beans", "Rolled oats"]);
+});
+
+test("an edit stamps only the records it changed", () => {
+  store.update((d) => { d.goals.calories = 1999; });
+  const d = store.getDB();
+  expect(Object.keys(d.stamps)).toEqual(["set:goals"]);
+  const id = d.foods[0].id;
+  store.update((x) => { x.foods = x.foods.filter((f) => f.id !== id); });
+  expect(store.getDB().gone[`foods:${id}`]).toBeGreaterThan(0);
 });

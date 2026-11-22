@@ -4,12 +4,11 @@ export {};
 declare global {
   interface Window {
     appFont?: {
-      google: {
-        token(opts?: { silent?: boolean }): Promise<string>;
+      cloud: {
+        signIn(opts?: { silent?: boolean }): Promise<unknown>;
         signedIn(): boolean;
         signOut(): void;
-        read(name: string): Promise<string | null>;
-        write(name: string, text: string): Promise<void>;
+        syncDoc(name: string, h: { load(): unknown; save(doc: unknown): void; merge(local: unknown, remote: unknown): unknown }): Promise<{ pulled: boolean; pushed: boolean }>;
       };
       getAccount(): { name: string; email: string; picture: string } | null;
       logSession(s: { kind: string; minutes?: number; id?: string }): boolean;

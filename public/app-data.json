@@ -1,5 +1,5 @@
 {
-  "schema": 2,
+  "schema": 3,
   "localStorage": ["macrotrackro-*"],
   "indexedDB": [],
   "drive": ["macrotrackro.json"],

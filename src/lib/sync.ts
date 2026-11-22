@@ -1,45 +1,40 @@
-// Drive sync: the whole document as one file in the reader's private app folder (drive.appdata),
-// through the house's shared sign-in (appFont.google). Tokens stay in font.js's memory.
-//
-// ponytail: whole-document sync, newest side wins. When BOTH sides changed since the last sync,
-// Drive's copy is taken and this device's copy is kept as the safety copy (Settings > Data >
-// Restore the previous copy). Merge record by record, with tombstones, if two devices are
-// often edited offline at the same time.
-import { getDB, normalize, replaceDB, subscribe } from "./store";
+// Cloud sync: the document as one file in the reader's private app folder, through the house's one
+// door (appFont.cloud, standard 1) and its safe sync (syncDoc, standard 30): the cloud copy is read
+// and merged record by record (mergeDB) before anything is written, so an old device never
+// overwrites newer data. Tokens stay in font.js's memory.
+import { adoptDB, getDB, mergeDB, normalize, subscribe } from "./store";
 
 const FILE = "macrotrackro.json";
-export type SyncResult = "pushed" | "pulled" | "conflict" | "same";
-
-const base = (): number => Number(localStorage.getItem("macrotrackro-sync") || 0);
+export type SyncResult = "pushed" | "pulled" | "both" | "same";
+let adopted = -1; // updatedAt of the last copy a sync brought in, so it does not count as an edit
 
 export async function sync(interactive: boolean): Promise<SyncResult> {
-  const G = window.appFont?.google;
-  if (!G) throw new Error("Google sign-in is not available right now.");
-  await G.token({ silent: !interactive });
-  const text = await G.read(FILE);
-  const local = getDB();
-  let result: SyncResult = "pushed";
-  if (text) {
-    const remote = normalize(window.appFont!.parseJSON(text, 20e6));
-    if (remote.updatedAt === local.updatedAt) result = "same";
-    else if (remote.updatedAt !== base()) {
-      // Drive changed since this device last synced (or this device never has)
-      result = local.updatedAt === base() || local.updatedAt === 0 ? "pulled" : "conflict";
-      replaceDB(remote);
-    }
-  }
-  if (result === "pushed") await G.write(FILE, JSON.stringify(local));
-  localStorage.setItem("macrotrackro-sync", String(getDB().updatedAt));
-  return result;
+  const C = window.appFont?.cloud;
+  if (!C) throw new Error("Cloud sign-in is not available right now.");
+  await C.signIn({ silent: !interactive });
+  const r = await C.syncDoc(FILE, {
+    load: () => getDB(),
+    save: (doc) => { const d = doc as ReturnType<typeof getDB>; adopted = d.updatedAt; adoptDB(d); },
+    // the cloud copy is outside data: checked like an import before it is merged
+    merge: (local, remote) => mergeDB(normalize(local), normalize(remote)),
+  });
+  return r.pulled && r.pushed ? "both" : r.pulled ? "pulled" : r.pushed ? "pushed" : "same";
 }
 
-/** Reconnect quietly when this device was signed in before, then push changes a few seconds after each edit. */
+/** Reconnect quietly when this device was signed in before, sync on focus and when the network returns, and a few seconds after each edit. */
 export function startAutoSync(): void {
-  const quiet = () => { sync(false).catch(() => { /* not signed in or offline: the next edit or the Sync button tries again */ }); };
-  if (window.appFont?.getAccount()) quiet();
-  let timer = 0;
+  let busy = false, timer = 0;
+  const quiet = () => {
+    if (!window.appFont?.getAccount()) return;
+    if (busy) { clearTimeout(timer); timer = window.setTimeout(quiet, 4000); return; }
+    busy = true;
+    sync(false).catch(() => { /* not signed in or offline: the next trigger tries again */ }).finally(() => { busy = false; });
+  };
+  quiet();
+  addEventListener("focus", quiet);
+  addEventListener("online", quiet);
   subscribe(() => {
-    if (!window.appFont?.google.signedIn() || getDB().updatedAt === base()) return;
+    if (getDB().updatedAt === adopted) return; // a sync result, not an edit
     clearTimeout(timer);
     timer = window.setTimeout(quiet, 4000);
   });
